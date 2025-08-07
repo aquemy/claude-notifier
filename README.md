@@ -2,6 +2,8 @@
 
 A clean notification system for tmux and Claude Code that provides native macOS notifications and one-click navigation to specific tmux panes.
 
+📖 **[Read the full blog post](https://quemy.info/2025-08-04-notification-system-tmux-claude.html)** for a detailed walkthrough of the architecture and implementation.
+
 ## Overview
 
 This system allows you to:
