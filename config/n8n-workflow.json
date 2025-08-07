@@ -1,0 +1,142 @@
+{
+  "name": "Claude Code Notification",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "claude-code-notification",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-240, 0],
+      "id": "1be841e6-6b9b-4da3-86f9-3b53cf482487",
+      "name": "Claude Code Notification Event",
+      "webhookId": "be4faefc-31b0-4603-afdc-f4ec5e5e659a"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8456/message",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "token",
+              "value": "<your token>"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "title",
+              "value": "=🤖 Claude is {{ $if($json.hook_event_name == 'Stop', 'done', 'waiting') }} for project {{ $json.project }}"
+            },
+            {
+              "name": "message",
+              "value": "=Session: {{ $json.session_id }}\nTMUX: {{ $json.tmux_location }}"
+            },
+            {
+              "name": "priority",
+              "value": "5"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [256, -96],
+      "id": "6c56d660-1fd9-4d17-8676-b57ddefeaf73",
+      "name": "Gotify Notification",
+      "notesInFlow": false,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3e7ba227-14c8-4e54-ad6a-41a79789958f",
+              "name": "tmux_location",
+              "value": "={{ $json.body.tmux_location }}",
+              "type": "string"
+            },
+            {
+              "id": "e428e02d-ae8a-4917-9ff5-6c01fbc7c3a9",
+              "name": "project",
+              "value": "={{ $json.body.cwd.split('/').last() }}",
+              "type": "string"
+            },
+            {
+              "id": "44f0cddd-a138-471c-99a1-e22d194fc029",
+              "name": "session_id",
+              "value": "={{ $json.body.session_id }}",
+              "type": "string"
+            },
+            {
+              "id": "c8c0d5b3-49b2-4127-8f49-a190b17225b8",
+              "name": "hook_event_name",
+              "value": "={{ $json.body.hook_event_name }}",
+              "type": "string"
+            },
+            {
+              "id": "f3057b4a-cfb2-45f6-a844-7f2c65fd7401",
+              "name": "tmux_session_name",
+              "value": "={{ $json.body.tmux_session_name }}",
+              "type": "string"
+            },
+            {
+              "id": "c5ad8c63-6c70-4ac3-9b6a-697e2d5fc6c1",
+              "name": "tmux_window_name",
+              "value": "={{ $json.body.tmux_window_name }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [16, 0],
+      "id": "694be38f-9a17-46a2-a04d-eacbffe74cc7",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:9000/hooks/ghostty-notify",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [256, 96],
+      "id": "4f8f3c3e-9a6f-4e36-8b4d-ec5a5e9e6a23",
+      "name": "Webhook System Notification",
+      "notesInFlow": false,
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Claude Code Notification Event": {
+      "main": [[{ "node": "Edit Fields", "type": "main", "index": 0 }]]
+    },
+    "Edit Fields": {
+      "main": [[
+        { "node": "Gotify Notification", "type": "main", "index": 0 },
+        { "node": "Webhook System Notification", "type": "main", "index": 0 }
+      ]]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
